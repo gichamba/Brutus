@@ -1,0 +1,11 @@
+Unhandled exception. System.IO.IOException: The process cannot access the file 'D:\Repos\Brutus\Brutus.Console\bin\Debug\net9.0\log.txt' because it is being used by another process.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.WriteToFile(String path, FileMode mode, ReadOnlySpan`1 contents, Encoding encoding)
+   at System.IO.File.AppendAllText(String path, String contents)
+   at Brutus.Core.Logger.Log(String level, String message) in D:\Repos\Brutus\Brutus.Core\Logger.cs:line 48
+   at Brutus.Core.Logger.LogInfo(String message) in D:\Repos\Brutus\Brutus.Core\Logger.cs:line 14
+   at Brutus.Core.BruteForceEngine.CrackPasswordRange(String filePath, String startPassword, String endPassword) in D:\Repos\Brutus\Brutus.Core\BruteForceEngine.cs:line 36
+   at Program.<<Main>$>g__Main|0_0(String[] args) in D:\Repos\Brutus\Brutus.Console\Program.cs:line 79
+   at Program.<Main>$(String[] args) in D:\Repos\Brutus\Brutus.Console\Program.cs:line 9
+   at Program.<Main>(String[] args)

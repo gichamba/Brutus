@@ -18,7 +18,7 @@ public class FoundLogger
         // Write header to the tab-delimited file if it's new.
         if (!File.Exists(_logFilePath))
         {
-            File.WriteAllText(_logFilePath, "File_Path\tPassword\tTime_Minutes" + System.Environment.NewLine);
+            File.WriteAllText(_logFilePath, "File_Path\tPassword\tTime_Minutes" + Environment.NewLine);
         }
     }
 
@@ -32,6 +32,6 @@ public class FoundLogger
     {
         string durationString = durationMinutes.ToString("F2");
         string logMessage = $"{filePath}\t{password ?? "N/A"}\t{durationString}";
-        File.AppendAllText(_logFilePath, logMessage + System.Environment.NewLine);
+        File.AppendAllText(_logFilePath, logMessage + Environment.NewLine);
     }
 }

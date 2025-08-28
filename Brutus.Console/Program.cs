@@ -15,7 +15,7 @@ async Task<int> Main(string[] args)
     string? path = commandLineHandler.GetPath(args);
     if (path == null) return 1; // Exit with an error code.
 
-    string instanceId = System.Guid.NewGuid().ToString();
+    string instanceId = Guid.NewGuid().ToString();
     Logger logger = new();
     FoundLogger foundLogger = new();
     logger.LogInfo($"Brutus instance {instanceId} started.");

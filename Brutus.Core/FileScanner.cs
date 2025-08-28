@@ -7,46 +7,34 @@ namespace Brutus.Core;
 /// <summary>
 /// Scans for PDF files, checks for duplicates using hashes, and adds new files to the database.
 /// </summary>
-public class FileScanner
-{
-    private readonly IFileRepository _fileRepository;
-    private readonly Logger _logger;
-    private readonly FoundLogger _foundLogger;
-
-    public FileScanner(IFileRepository fileRepository, Logger logger, FoundLogger foundLogger)
-    {
-        _fileRepository = fileRepository;
-        _logger = logger;
-        _foundLogger = foundLogger;
-    }
-
+public class FileScanner(IFileRepository fileRepository, Logger logger, FoundLogger foundLogger) {
     /// <summary>
     /// Scans a path for PDF files, processes them against the database, and adds new ones.
     /// </summary>
     /// <param name="path">The file or directory path to scan.</param>
     public async Task ScanAndAddFilesAsync(string path)
     {
-        _logger.LogInfo($"Scanning for PDF files in: {path}");
+        logger.LogInfo($"Scanning for PDF files in: {path}");
         List<string>? files = FindPdfFiles(path).ToList();
-        _logger.LogInfo($"Found {files.Count} PDF files. Calculating hashes...");
+        logger.LogInfo($"Found {files.Count} PDF files. Calculating hashes...");
 
         foreach (string? file in files)
         {
             string? fileHash = FileHasher.ComputeSha256(file);
-            IEnumerable<FileRecord>? existingFiles = await _fileRepository.GetByHashAsync(fileHash);
+            IEnumerable<FileRecord>? existingFiles = await fileRepository.GetByHashAsync(fileHash);
 
             FileRecord? completedFile = existingFiles.FirstOrDefault(f => f.Status == "COMPLETED");
 
             if (completedFile != null)
             {
-                _logger.LogInfo($"DUPLICATE: File {file} already processed as {completedFile.FilePath}, password: {completedFile.PasswordFound}");
-                _foundLogger.Log(file, completedFile.PasswordFound, 0.00);
+                logger.LogInfo($"DUPLICATE: File {file} already processed as {completedFile.FilePath}, password: {completedFile.PasswordFound}");
+                foundLogger.Log(file, completedFile.PasswordFound, 0.00);
                 continue;
             }
 
-            await _fileRepository.AddFileAsync(file, fileHash);
+            await fileRepository.AddFileAsync(file, fileHash);
         }
-        _logger.LogInfo("Finished scanning and adding files.");
+        logger.LogInfo("Finished scanning and adding files.");
     }
 
     /// <summary>
@@ -59,9 +47,9 @@ public class FileScanner
     {
         if (File.Exists(path))
         {
-            if (path.EndsWith(".pdf", System.StringComparison.OrdinalIgnoreCase))
+            if (path.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
             {
-                return new[] { path };
+                return [path];
             }
             return [];
         }
