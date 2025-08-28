@@ -1,0 +1,5 @@
+File_Path	Password	Time_Minutes
+	NO_PASSWORD	0.00
+D:\Repos\Brutus\dummy.pdf	N/A	0.00
+	NO_PASSWORD	0.00
+D:\Repos\Brutus\dummy.pdf	NO_PASSWORD	0.00
