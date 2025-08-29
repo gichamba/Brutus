@@ -8,16 +8,15 @@ using Brutus.Core.Database.Models;
 
 return await Main(args);
 
-async Task<int> Main(string[] args)
-{
+async Task<int> Main(string[] args) {
     // --- 1. Initialization ---
     CommandLineHandler commandLineHandler = new();
     string? path = commandLineHandler.GetPath(args);
     if (path == null) return 1; // Exit with an error code.
 
     string instanceId = Guid.NewGuid().ToString();
-    Logger logger = new();
-    FoundLogger foundLogger = new();
+    Logger logger = new(instanceId);
+    FoundLogger foundLogger = new(instanceId);
     logger.LogInfo($"Brutus instance {instanceId} started.");
 
     DatabaseManager databaseManager = new();
@@ -39,12 +38,10 @@ async Task<int> Main(string[] args)
     logger.LogInfo("Checking for available work...");
     Stopwatch fileStopwatch = new();
 
-    while (true)
-    {
+    while (true) {
         FileRecord? fileToProcess = await batchCoordinator.GetNextFileAsync();
 
-        if (fileToProcess == null)
-        {
+        if (fileToProcess == null) {
             logger.LogInfo("No more pending files available. Instance shutting down.");
             break;
         }
@@ -52,8 +49,7 @@ async Task<int> Main(string[] args)
         logger.LogInfo($"--- Assigned File [ID: {fileToProcess.Id}]: {fileToProcess.FilePath} ---");
         fileStopwatch.Restart();
 
-        if (!pdfProcessor.IsPasswordProtected(fileToProcess.FilePath))
-        {
+        if (!pdfProcessor.IsPasswordProtected(fileToProcess.FilePath)) {
             logger.LogSkip("File is not password protected.");
             await batchCoordinator.MarkFileAsCompletedAsync(fileToProcess.Id, "NO_PASSWORD", 0);
             foundLogger.Log(fileToProcess.FilePath, "NO_PASSWORD", 0);
@@ -65,30 +61,25 @@ async Task<int> Main(string[] args)
         await batchCoordinator.CreateBatchesForFileAsync(fileToProcess.Id);
 
         // --- 3a. Batch Processing Loop ---
-        while (true)
-        { 
+        while (true) {
             TrialBatch? batch = await batchCoordinator.CheckoutNextBatchAsync(fileToProcess.Id, instanceId);
-            if (batch == null)
-            {
+            if (batch == null) {
                 logger.LogInfo($"No more available batches for file {fileToProcess.Id}. Moving to next file.");
                 break;
             }
 
             logger.LogInfo($"Processing Batch {batch.batch_index} ({batch.range_from} - {batch.range_to}) for file {fileToProcess.Id}");
-            
+
             string? password = bruteForceEngine.CrackPasswordRange(fileToProcess.FilePath, batch.range_from, batch.range_to);
 
-            if (password != null)
-            {
+            if (password != null) {
                 fileStopwatch.Stop();
                 logger.LogSuccess($"Password FOUND: {password}");
                 await batchCoordinator.MarkBatchAsCompletedAsync(batch.Id);
                 await batchCoordinator.MarkFileAsCompletedAsync(fileToProcess.Id, password, fileStopwatch.Elapsed.TotalMinutes);
                 foundLogger.Log(fileToProcess.FilePath, password, fileStopwatch.Elapsed.TotalMinutes);
                 break;
-            }
-            else
-            {
+            } else {
                 logger.LogInfo($"Password not in batch {batch.batch_index}.");
                 await batchCoordinator.MarkBatchAsCompletedAsync(batch.Id);
             }

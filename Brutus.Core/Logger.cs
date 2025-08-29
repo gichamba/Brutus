@@ -3,9 +3,26 @@ namespace Brutus.Core;
 /// <summary>
 /// A simple logger for writing messages to both the console and a log file.
 /// </summary>
-/// <param name="logFilePath">The path to the log file. Defaults to "log.txt".</param>
-public class Logger(string logFilePath = "log.txt")
+public class Logger
 {
+    private readonly string _logFilePath;
+
+    /// <summary>
+    /// Default constructor. Generates a new GUID for the instance ID.
+    /// </summary>
+    public Logger() : this(Guid.NewGuid().ToString()) { }
+
+    /// <summary>
+    /// Constructor that accepts an instance ID.
+    /// </summary>
+    /// <param name="instanceId">A unique identifier for the current application instance.</param>
+    public Logger(string instanceId)
+    {
+        string logsDirectory = "Logs";
+        Directory.CreateDirectory(logsDirectory);
+        _logFilePath = Path.Combine(logsDirectory, $"log_{instanceId}.txt");
+    }
+
     /// <summary>
     /// Logs an informational message.
     /// </summary>
@@ -45,6 +62,6 @@ public class Logger(string logFilePath = "log.txt")
     {
         string logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {level}: {message}";
         Console.WriteLine(logMessage);
-        File.AppendAllText(logFilePath, logMessage + Environment.NewLine);
+        File.AppendAllText(_logFilePath, logMessage + Environment.NewLine);
     }
 }

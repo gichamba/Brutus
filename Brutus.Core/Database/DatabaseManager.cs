@@ -5,8 +5,8 @@ namespace Brutus.Core.Database
     /// <summary>
     /// Manages the creation and connection to the SQLite database.
     /// </summary>
-    /// <param name="databasePath">The path to the SQLite database file. Defaults to "progress.db".</param>
-    public class DatabaseManager(string databasePath = "Brutus.db")
+    /// <param name="databasePath">The path to the SQLite database file. Defaults to "brutus.db".</param>
+    public class DatabaseManager(string databasePath = "brutus.db")
     {
         /// <summary>
         /// Initializes the database by creating the necessary tables if they do not already exist.

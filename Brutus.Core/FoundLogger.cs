@@ -5,23 +5,20 @@ namespace Brutus.Core;
 /// </summary>
 public class FoundLogger
 {
-
     private readonly string _logFilePath;
 
-    /// <summary>
-    /// Initializes the logger and writes the header to the log file if it doesn't exist.
-    /// </summary>
-    /// <param name="logFilePath">The path to the results file. Defaults to "Found.txt".</param>
-    public FoundLogger(string logFilePath = "Found.txt")
+    public FoundLogger(string instanceId)
     {
-        _logFilePath = logFilePath;
+        string logsDirectory = "Logs";
+        Directory.CreateDirectory(logsDirectory);
+        _logFilePath = Path.Combine(logsDirectory, $"Found_{instanceId}.txt");
+
         // Write header to the tab-delimited file if it's new.
         if (!File.Exists(_logFilePath))
         {
             File.WriteAllText(_logFilePath, "File_Path\tPassword\tTime_Minutes" + Environment.NewLine);
         }
     }
-
     /// <summary>
     /// Logs a single result entry to the Found.txt file.
     /// </summary>

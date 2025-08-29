@@ -112,7 +112,7 @@ C:\test\confidential.pdf	FAILED	5.00
 ### 2.6 Multi-Instance Support and Progress Tracking
 
 #### 2.6.1 SQLite Database Schema
-**Database File**: `progress.db` (created in application directory)
+**Database File**: `brutus.db` (created in application directory)
 
 **Table: file_list**
 ```sql
