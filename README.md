@@ -2,6 +2,8 @@
 
 ## Overview
 
+The new [Tauri desktop app](desktop/README.md) adds file and folder selection, Rust workers, progress and local recovery history. The C# console app described below remains in this repository.
+
 This was a classic case of needing a specific tool and building it on the spot. I had to recover a 6-digit password from a batch of PDFs, so I spun this up in about ~~30~~ many more minutes. The PRD was drafted with some help from Claude, and Gemini CLI handled the coding. 
 
 This is a C# console application that performs a multi-instance, database-coordinated brute-force attack on PDF files protected with 6-digit numeric passwords.

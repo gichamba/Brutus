@@ -76,20 +76,22 @@ Brutus.exe "/home/user/documents/"
 - Success/failure results
 - Summary statistics
 
-#### 2.5.2 Log File Output (log.txt)
+#### 2.5.2 Log File Output
 **Persistent logging of:**
 - Timestamp for each operation
 - File path and status
 - Found passwords
 - Processing duration
 - Error messages
+**Multi-Instance Behavior**: Each instance of Brutus will create its own log file (e.g., `log_someinstanceid.txt`) within a `Logs` subdirectory to prevent file access conflicts.
 
-#### 2.5.3 Found Results File (Found.txt)
+#### 2.5.3 Found Results File
 **Explicit tracking of ALL evaluated files:**
 - Full file path
 - Password found (or "NO_PASSWORD" if not password protected)
 - Time taken to find password in minutes (decimal format)
 - Tab-delimited format for easy parsing
+**Multi-Instance Behavior**: Each instance of Brutus will create its own results file (e.g., `Found_someinstanceid.txt`) within a `Logs` subdirectory to prevent file access conflicts.
 
 #### 2.5.4 Log Entry Examples
 

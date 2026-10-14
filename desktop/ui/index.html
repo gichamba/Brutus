@@ -1,0 +1,67 @@
+<!doctype html>
+<!-- Local recovery and history views; app.js supplies paths and outcomes as text. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Brutus</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="#recovery" aria-label="Brutus recovery"><span class="brand-mark">B</span><span>brutus<span class="brand-sub">PDF RECOVERY</span></span></a>
+      <div class="nav-caption">WORKSPACE</div>
+      <nav aria-label="Main navigation">
+        <button class="nav-item selected" id="nav-recovery" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10l4 4v12H5zM14 4v5h5M8 13h8M8 16h5"/></svg>Recovery</button>
+        <button class="nav-item" id="nav-history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 3 8M3 5v6h6M12 7v6l4 2"/></svg>History<span class="nav-count" id="history-count">0</span></button>
+      </nav>
+      <div class="sidebar-bottom"><span class="local-dot"></span>On your device<span class="local-note">Files and results stay local.</span><span class="version">BRUTUS / 0.1.0</span></div>
+    </aside>
+    <main>
+      <header class="topbar"><span id="breadcrumb">Workspace <span>/</span> Recovery</span><span class="scope-label">6-DIGIT NUMERIC PASSWORDS</span></header>
+      <div class="content">
+        <div id="message" class="message" role="alert" hidden></div>
+        <section id="recovery-view" aria-labelledby="recovery-title">
+          <div class="page-heading"><div><div class="eyebrow">LET'S GET YOUR FILES BACK</div><h1 id="recovery-title" tabindex="-1">Recovery workspace<span class="accent">.</span></h1><p>Select your PDFs. Brutus takes it from here.</p></div><span id="run-indicator" class="status-indicator"><span></span>Ready to recover</span></div>
+          <div class="workspace-grid">
+            <div class="card input-card">
+              <div class="card-heading"><h2><span class="step">01</span>Choose your inputs</h2><span class="small-label">PDF FILES</span></div>
+              <div class="select-area"><div class="document-icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h11l6 6v18H8zM19 4v7h6M12 16h9M12 20h7"/></svg></div><h3>One file or a whole folder.</h3><p>Folders include PDFs in subfolders.</p><div class="picker-actions"><button id="pick-files" class="button light">Select PDFs <span aria-hidden="true">↗</span></button><button id="pick-folder" class="button secondary">Select folder</button></div></div>
+              <div id="inputs" class="input-list" aria-label="Selected inputs"></div>
+              <div class="input-footer"><span id="input-count">No inputs selected</span><button id="clear-inputs" class="text-button" hidden>Clear selection</button></div>
+            </div>
+            <form id="recovery-form" class="card settings-card">
+              <div class="card-heading"><h2><span class="step">02</span>Recovery settings</h2></div>
+              <label class="field-label" for="workers">Parallel workers <span id="worker-caption">Checking your CPU…</span></label>
+              <div class="worker-control"><input id="workers" type="range" min="1" max="32" value="1"><output id="worker-value" for="workers">1</output></div>
+              <p class="field-help">Workers share files and password ranges. More workers use more CPU.</p>
+              <div class="range-heading">Password range<span class="small-label">INCLUSIVE</span></div>
+              <div class="range-fields"><div><label for="range-start">From</label><input id="range-start" type="text" inputmode="numeric" pattern="[0-9]{1,6}" maxlength="6" value="000000" required></div><span aria-hidden="true">→</span><div><label for="range-end">To</label><input id="range-end" type="text" inputmode="numeric" pattern="[0-9]{1,6}" maxlength="6" value="999999" required></div></div>
+              <div class="attempt-budget"><span id="candidate-count">1,000,000</span> possible passwords per PDF</div>
+              <button id="start-run" type="submit" class="button primary" disabled>Start recovery <span aria-hidden="true">→</span></button>
+              <p class="settings-note">Your original PDFs stay unchanged.</p>
+            </form>
+          </div>
+          <section id="live-section" class="card run-card" aria-labelledby="live-title">
+            <div class="card-heading"><h2 id="live-title">Current run</h2><div class="run-actions"><button id="resume-current" class="button secondary compact" hidden>Resume run</button><button id="cancel-run" class="button secondary compact" hidden>Cancel run</button></div></div>
+            <div id="run-empty" class="empty-state"><span class="empty-symbol" aria-hidden="true">↗</span><div><h3>Ready when you are.</h3><p>Your progress and file results will appear here.</p></div></div>
+            <div id="run-content" hidden><div class="run-metrics"><div><span class="metric-label">FILES PROCESSED</span><strong id="metric-files">0 / 0</strong></div><div><span class="metric-label">RECOVERED</span><strong id="metric-found" class="accent">0</strong></div><div><span class="metric-label">PASSWORDS TRIED</span><strong id="metric-attempts">0</strong></div><div><span class="metric-label">ELAPSED</span><strong id="metric-time">0s</strong></div></div><div class="progress-heading"><span id="progress-label">Preparing…</span><span id="progress-percent">0%</span></div><progress id="run-progress" max="100" value="0" aria-label="Run progress"></progress><div id="run-errors"></div><div id="file-results" class="file-results"></div></div>
+          </section>
+          <div class="workspace-note"><span aria-hidden="true">⌁</span> Recovery checks six-digit numeric passwords. A password outside this range will not be found.</div>
+        </section>
+        <section id="history-view" aria-labelledby="history-title" hidden>
+          <div class="page-heading"><div><div class="eyebrow">YOUR WORK, KEPT HERE</div><h1 id="history-title" tabindex="-1">Recovery history<span class="accent">.</span></h1><p>Past runs, recovered passwords, and where you left off.</p></div><button id="refresh-history" class="button secondary compact">Refresh</button></div>
+          <div class="history-toolbar"><label class="search-box" for="history-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input id="history-search" type="search" placeholder="Search by file, folder, or outcome"></label><span id="history-summary" class="muted">Loading history…</span></div>
+          <div id="history-list" class="history-list"></div>
+        </section>
+        <footer><span>LOCAL FILES. LOCAL RECOVERY.</span><span>No uploads. No account.</span></footer>
+      </div>
+    </main>
+  </div>
+  <dialog id="run-dialog" aria-labelledby="detail-title"><div class="dialog-heading"><div><div class="eyebrow">RUN DETAILS</div><h2 id="detail-title">Recovery run</h2></div><button id="close-dialog" class="icon-button" aria-label="Close run details">×</button></div><div id="detail-content"></div><div class="dialog-footer"><button id="resume-history" class="button primary" hidden>Resume this run <span aria-hidden="true">→</span></button><button id="dismiss-dialog" class="button secondary">Close</button></div></dialog>
+  <div id="announcement" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>
