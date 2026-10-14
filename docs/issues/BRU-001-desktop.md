@@ -2,15 +2,14 @@
 id: BRU-001
 title: Add the Brutus Tauri desktop app
 kind: feature
-status: in-progress
+status: in-review
 owner: agent
 acceptance_by: integration-review
 delivery_target: main
 depends_on: []
 sources:
   - docs/specs/desktop.md
-claim: {"actor":"agent","candidate":"main","started_at":"2026-10-14T16:59:08+03:00"}
-next_action: commit and check main before pushing origin
+next_action: user-invoked integration review
 ---
 
 ## Outcome
@@ -36,7 +35,7 @@ Pure unit tests for range coverage, job ownership, cancellation, resume, validat
 
 ## Evidence
 
-Implementation and code review passed at the working tree. AC1 through AC5 have implementation and local evidence but remain unproven through the real desktop flow until integration review.
+Implementation and code review passed, and the work is committed on main. AC1 through AC5 have implementation and local evidence but remain unproven through the real desktop flow until integration review.
 
 - Changed files: desktop/ contains the Tauri shell, Rust service, scheduler, PDF authentication, SQLite history, static UI, tests, package locks and icons. README.md links the desktop instructions. .gitignore excludes generated Rust output. docs/specs/desktop.md and docs/notes/tauri-app-questions.md record the governing behavior and dependency approval.
 - TDD: the initial range tests failed with three empty-range failures. Scheduling, cancellation and search tests then failed with five behavior failures before implementation; all passed after implementation. The review regression first failed because a malformed replacement retained `Some("123456")` instead of `None`, then passed after the error propagation fix.
@@ -50,6 +49,17 @@ Implementation and code review passed at the working tree. AC1 through AC5 have 
 - Prose: humanizer review covered the new docs, UI copy and authored comments. Its advisory checker reported no findings for the desktop spec and README.
 - Integration, browser and system checks: not run here; require user-invoked integration-review.
 
+### Merge delivery
+
+- The user invoked merge-work, authorizing commits on main and a push to origin. The delivery target is now main. No other branches, worktrees, stashes or active claims needed combination or cleanup; there were no conflicts.
+- Combined implementation commit: `4cfbf129c0de239ccc20f2e61556e331e618659b`. The following delivery-record commit changes Markdown only and preserves this tested source candidate.
+- Main check: `cargo test --lib --locked` passed 17 tests, with 0 failures, 0 ignored and 0 filtered out. `npm test` passed 6 tests with 0 failures and 0 skipped; `npm run check` passed. `npm run build -- --bundles nsis` exited 0, producing the optimized Windows executable and NSIS installer with 0 compiler warnings and 0 compiler errors. Logs are under the user's temp directory at agents/Brutus/merge-unit-tests.log and agents/Brutus/merge-windows-build.log.
+- Main source candidate hash: `1e9314c26223081910b8173cbfdd759875ddfcd474f58613e6fd9b333afd3b78`, using the source/config/lock/icon manifest method recorded above. Rebuilt installer: 3,036,841 bytes, SHA256 `a65d49d485a352c1cfbff79208ce6de7a8bea5218a6fdb182f36ad50c9017ea3`. This replaces the earlier working-tree installer at the same path.
+- Before committing, review-comments and humanizer checked all 14 staged source files and recorded the receipt. Missing module, declaration, field and handler documentation was added. The commit guard twice misclassified non-secret data: a public PDF test fixture and a SQL column expression. The fixture now generates 000008 from numeric example 8, keeping fixed independent assertions. The SQL cache update uses its existing bound parameter ?2 for the same nullable value. No guard settings were changed.
+- A focused read-only review on `4cfbf129` passed the two equivalent changes. The earlier recovery review remains applicable; no remaining confirmed findings. The worker used the explicit gpt-6.1-sol fallback because Terra was unavailable.
+- Target reached: committed main. The authorized push to origin follows this delivery record. No deployment, tags or real-system checks are part of this invocation.
+- Integration, browser and system checks: not run here; require user-invoked integration review.
+
 Remaining verification: native selection, actual multi-file recovery, rendered layout and keyboard use, cancellation through the UI, SQLite persistence, restart/resume and cache reuse. Linux and macOS builds have not run. The user owns the next integration-review invocation for BRU-001; no further dependency approval is needed.
 
 ## Timeline and comments
@@ -58,3 +68,4 @@ Remaining verification: native selection, actual multi-file recovery, rendered l
 - 2026-10-14T13:16:52+03:00 | agent | approach | Add static frontend and Tauri config, test the range scheduler first, implement Rust recovery and checkpoints, then finish UI and build. Main risks are encryption compatibility, cancellation races and persistence errors. One read-only review worker follows implementation; no system checks are authorized.
 - 2026-10-14T13:44:12+03:00 | agent | in-review | Implementation passed final unit, static and Windows installer checks. Released the claim. Fresh review found a stale-password error-path defect; the fix passed its regression and focused re-review. Awaiting user-invoked integration review at the working tree.
 - 2026-10-14T16:59:08+03:00 | agent | in-progress | The user invoked merge-work. Claimed delivery to main, including the original PRD edit. Inventory found one dirty main worktree, no stashes, no other claims and no other local or remote branches. Fetch confirmed main and origin/main at 7c1cbbe. Comment review added documentation only. Integration review remains pending.
+- 2026-10-14T17:10:15+03:00 | agent | in-review | Committed the combined work as 4cfbf129 on main. All 23 unit tests passed and the Windows installer built with zero compiler warnings or errors. Focused review passed the bound SQL update and generated fixture. Released the delivery claim; user-invoked integration review remains the next product verification step.
