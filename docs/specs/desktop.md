@@ -4,6 +4,8 @@
 
 Recover forgotten six-digit numeric passwords from the user's PDFs through a local desktop app. Let the user select inputs, watch recovery, and return to past outcomes.
 
+This is the governing behavior specification for the Tauri product. The [PRD](../../PRD.md) is the product overview, the [README](../../README.md) describes use, and the [desktop guide](../../desktop/README.md) owns build commands.
+
 ## Requirements
 
 - D1: The user can select PDF files or a folder through native dialogs. Folder discovery includes subfolders. Invalid inputs and unreadable paths produce visible errors.
@@ -13,7 +15,7 @@ Recover forgotten six-digit numeric passwords from the user's PDFs through a loc
 - D5: Local SQLite stores run inputs, settings, timestamps, per-file outcomes, recovered passwords, hashes and completed ranges across restarts. Startup marks unfinished runs interrupted. Successful results may be reused for identical content. A changed source resets that file's checkpoint.
 - D6: A malformed PDF, unsupported encryption or unreadable file is an error, not a recovered password or an exhausted range. Other files continue after an individual error. Exhaustion is reported as not found in the selected range.
 - D7: The UI has a restrained dark palette, clear file selection, a recovery view and searchable history with run details. Controls have labels, visible keyboard focus, accessible status messages and layouts for narrow and wide windows. Motion respects reduced-motion preferences.
-- D8: The existing C# console app and existing user edits stay intact. The desktop app uses its own app-data database. It is designed for Windows, macOS and Linux; only a Windows build is verified here.
+- D8: The earlier C# console source and existing user edits stay intact as historical material. The active product is Tauri and uses its own app-data database. It is designed for Windows, macOS and Linux; only a Windows build is verified here.
 - D9: Approved dependencies are Tauri 2, its dialog plugin, lopdf, rusqlite with bundled SQLite, serde, serde_json, sha2, tauri-build and the Tauri CLI. Use plain frontend assets and standard Rust threads.
 
 ## Scenarios
@@ -30,7 +32,9 @@ Recover forgotten six-digit numeric passwords from the user's PDFs through a loc
 
 ## Constraints
 
-All recovery and history remain local. History contains recovered passwords as local plaintext, matching the existing tool's outcome records. No speedup is guaranteed: PDF encryption and available CPU resources affect throughput. Checkpoint only completed ranges; a partial range can repeat after cancellation or a crash. Error messages must not claim success when history cannot be saved.
+All recovery and history remain local. History contains recovered passwords as local plaintext. No speedup is guaranteed: PDF encryption and available CPU resources affect throughput. Checkpoint only completed ranges; a partial range can repeat after cancellation or a crash. Error messages must not claim success when history cannot be saved.
+
+The worker setting accepts 1 through 32 workers. Work is split into ranges of at most 1,000 candidates. Sources reported above 100 MiB are rejected, and parsed PDFs remain in memory during a run. The desktop database is `brutus-desktop.db` in the user's app-data directory; it is separate from the legacy console database.
 
 ## External assumptions
 
@@ -38,11 +42,13 @@ The user supplies readable PDFs they own and a desktop with the required WebView
 
 ## Non-goals
 
-Console database migration, coordinated desktop instances, GPU processing, nonnumeric passwords, PDF rewriting, network processing, publishing, commits and deployment.
+Console database migration, coordinated desktop instances, GPU processing, nonnumeric passwords, PDF rewriting and network processing. Git delivery, publishing and deployment follow separate user instructions; the user later invoked merge-work for main delivery.
 
 ## Current state
 
-At specification time, the repository had a C# console app and no desktop UI or Rust project. Its PDF processor reparses each candidate and treats some read errors as password failures. The new desktop implementation replaces that processing path without changing the console app. Its delivery evidence is recorded in [BRU-001](../issues/BRU-001-desktop.md).
+The current app lives in `desktop/`, with a Tauri shell, Rust recovery service and static UI. Its code and delivery record were pushed to main. The earlier .NET code stays on the back burner; its documents are archived and do not govern active product work.
+
+Unit checks, code review and the Windows installer build have recorded passing evidence in [BRU-001](../issues/BRU-001-desktop.md). Native dialogs, rendered UI, actual history persistence and restart/resume still need user-invoked integration review. Linux and macOS builds have not been verified here.
 
 ## Open questions
 

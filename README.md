@@ -1,79 +1,48 @@
-# PDF Password Brute Force Tool (Brutus)
+# Brutus
 
-## Overview
+Brutus is a Tauri 2 desktop app for recovering forgotten six-digit numeric passwords from PDFs. It has a Rust backend, a dark interface, and local work history.
 
-The new [Tauri desktop app](desktop/README.md) adds file and folder selection, Rust workers, progress and local recovery history. The C# console app described below remains in this repository.
+## Recover PDFs
 
-This was a classic case of needing a specific tool and building it on the spot. I had to recover a 6-digit password from a batch of PDFs, so I spun this up in about ~~30~~ many more minutes. The PRD was drafted with some help from Claude, and Gemini CLI handled the coding. 
+1. Open Brutus and select PDF files or a folder. Folders include PDFs in subfolders.
+2. Choose the worker count and password range. The default range is `000000` through `999999`.
+3. Select **Start recovery**. Watch per-file results, passwords tried, elapsed time and progress.
+4. Use **Cancel run** to stop processing. Open **History** to inspect past outcomes or resume cancelled and interrupted runs.
 
-This is a C# console application that performs a multi-instance, database-coordinated brute-force attack on PDF files protected with 6-digit numeric passwords.
+Workers share distinct ranges across several files or within one file. A recovered password stops that file's remaining work. More workers use more CPU; speed depends on the PDF's encryption and the machine.
 
-This is a simple tool that serves a (very) specific purpose. Treat it like a demo.
+The app keeps the original PDFs unchanged. It tests exactly six-digit numeric passwords and reports when none are found in the selected range. Malformed, unsupported or unreadable PDFs appear as file errors.
 
-## Features
+## Build the desktop app
 
-- **Brute Force Attack**: Attempts to find the password of a protected PDF file by trying every combination from `000000` to `999999`.
-- **Directory Scanning**: Can process a single PDF file or recursively scan an entire directory for PDF files.
-- **Multi-Instance Coordination**: Multiple instances of `Brutus.exe` can be run simultaneously to work together on the same set of files. Work is coordinated through a central SQLite database (`brutus.db`).
-- **Session Resume**: If an instance is stopped, its work can be automatically picked up by another instance after a timeout. The application can be stopped and restarted, and it will resume where the collective of instances left off.
-- **File Hash-Based Duplicate Detection**: Avoids reprocessing already completed files by calculating and storing SHA256 hashes of file content.
-- **Logging**:
-    - **Console**: Real-time progress of the current instance.
-    - **`log.txt`**: A detailed, timestamped log of all operations.
-    - **`Found.txt`**: A clean, tab-delimited summary of all processed files and the passwords that were found.
+Install Node.js with npm, Rust 1.90 or newer, and the platform tools described in the [desktop build guide](desktop/README.md). On Windows, use a Visual Studio developer shell with working C++ tools and the Windows SDK.
 
-## Usage
+From the repository root:
 
-To run the application, open a command prompt or terminal, navigate to the directory containing `Brutus.exe`, and provide the path to a PDF file or a directory.
-
-### Process a single file:
-```shell
-Brutus.exe "C:\Path\To\Your\locked.pdf"
+```powershell
+cd desktop
+npm ci
+npm run build -- --bundles nsis
 ```
 
-### Process all PDF files in a directory (and its subdirectories):
-```shell
-Brutus.exe "C:\Path\To\Your\Documents"
-```
+The Windows installer is written under `desktop/src-tauri/target/release/bundle/nsis/`. The executable is `desktop/src-tauri/target/release/brutus-desktop.exe`. These are local build outputs; they are not checked into the repository. Run the installer to install Brutus, or open the executable on a machine with WebView2 available.
 
-The application will create a `brutus.db` file in the same directory to track progress.
+For development, run `npm run dev` from `desktop/`. Linux and macOS build instructions are in the build guide; those builds have not been verified here.
 
-## Building and Running
+## History and resume
 
-To build and run Brutus, you'll need the .NET 9 SDK.
+Runs, selected inputs, settings, timestamps, recovered passwords and file outcomes are saved in a local SQLite database, `brutus-desktop.db`. On Windows its usual location is `%APPDATA%\app.brutus.desktop\brutus-desktop.db`.
 
-1.  **Download .NET 9 SDK**: If you don't have it, download and install the .NET 9 SDK from the official Microsoft website: [https://dotnet.microsoft.com/download/dotnet/9.0](https://dotnet.microsoft.com/download/dotnet/9.0)
+Completed 1,000-candidate ranges are checkpointed. A partial range may repeat after cancellation or a crash. Resume rescans inputs and resets a file's checkpoints when its bytes change. Successful results can be reused for identical file content, even at another path.
 
-2.  **Restore NuGet Packages**: Navigate to the root directory of the project (where `Brutus.sln` is located) in your terminal or command prompt and run:
-    ```shell
-    dotnet restore
-    ```
+Recovered passwords are stored locally as plaintext. Files reported above 100 MiB are rejected. Parsed PDFs stay in memory during a run, so large folders can need substantial memory. One recovery run is active per desktop instance; desktop instances do not share a scheduler.
 
-3.  **Build the Application**: After restoring packages, build the application in Release mode. This will create the executable file.
-    Navigate to the root directory of the project (where `Brutus.sln` is located) in your terminal or command prompt and run:
-    ```shell
-    dotnet build --configuration Release
-    ```
+## Documentation
 
-4.  **Run the Application**: Once the build is successful, you can find the `Brutus.exe` executable in the `Brutus.Console\bin\Release\net9.0\` directory (the exact path might vary slightly depending on your .NET version and target framework).
+- [Product overview](PRD.md)
+- [Desktop requirements](docs/specs/desktop.md)
+- [Build guide and developer checks](desktop/README.md)
+- [Implementation and verification evidence](docs/issues/BRU-001-desktop.md)
+- [Project history](HowWeGotHere.md)
 
-    Navigate to that directory in your terminal or command prompt and run the executable, replacing `C:\Path\To\Your\locked.pdf` or `C:\Path\To\Your\Documents` with your target file or directory:
-    ```shell
-    Brutus.exe "C:\Path\To\Your\locked.pdf"
-    ```
-    or
-    ```shell
-    Brutus.exe "C:\Path\To\Your\Documents"
-    ```
-
-
-
-## Core Limitation: 6-Digit Numeric Passwords Only
-
-**This tool is intentionally limited and will ONLY work for passwords that are exactly six digits long and contain only numbers (e.g., `123456`, `987654`, `000000`).**
-
-- It **cannot** find passwords containing letters.
-- It **cannot** find passwords containing symbols.
-- It **cannot** find passwords that are shorter or longer than 6 digits.
-
-This limitation is by design to serve our specific purpose: efficiently cracking a batch of PDF files that were known to have six-digit numeric passwords. It effectively highlights the vulnerability of this very specific, weak password pattern.
+The desktop implementation and Windows build have unit and code-review evidence. Native dialogs, rendered UI, actual history persistence and restart/resume still need user-invoked integration review.

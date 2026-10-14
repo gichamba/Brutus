@@ -1,53 +1,28 @@
 # How We Got Here
 
-This file documents the key decisions and steps taken during the development of the PDF Brute Force tool, aiming to provide a clear historical log and prevent revisiting past challenges.
+This document records the Tauri app's direction and development. Current behavior is defined in the [desktop specification](docs/specs/desktop.md); build commands are in the [desktop guide](desktop/README.md).
 
-## Initial Setup
+## Product direction
 
-1.  Created this log file, `HowWeGotHere.md`.
-2.  Restructured the project to match the PRD, creating `Brutus.Core` and `Brutus.Console`.
-3.  Installed `itext7` NuGet package.
-4.  Ensured the solution compiles.
+The user needed to recover six-digit numeric passwords from PDFs, select files or folders through a modern UI, share work across CPU workers, and keep past outcomes. The repository was reused for a Tauri 2 desktop app with a Rust backend.
 
-## Core Implementation
+The user confirmed that the earlier .NET app stays on the back burner as historical code. Its [development notes](docs/archive/console-history.md), [guide](docs/archive/console-guide.md) and [PRD](docs/archive/console-prd.md) are archived. Active product documentation is about Tauri.
 
-1.  Created `FileScanner.cs` to find PDF files.
-2.  Created `Logger.cs` for console and file logging.
-3.  Created `PdfProcessor.cs` to handle PDF operations with `iText7`.
-4.  Created `BruteForceEngine.cs` to perform the brute force attack, specifically targeting 6-digit numeric passwords (000000 to 999999).
-5.  Created model classes `ProcessingResult.cs` and `BruteForceOptions.cs`.
-6.  Created `CommandLineHandler.cs` to parse arguments.
-7.  Updated `Program.cs` to orchestrate the application flow.
-8.  Verified the entire solution builds successfully.
+## Desktop implementation - 2026-10-14
 
-## Debugging and Refinement - PDF Library Choice
+1. Added the app under `desktop/`, with plain HTML, CSS and JavaScript views connected to Rust commands.
+2. Kept the password scope at `000000` through `999999`, with a configurable inclusive search range.
+3. Split work into distinct ranges of at most 1,000 candidates. A bounded pool shares those ranges across PDFs and within one PDF. Parsed PDFs are reused during a run.
+4. Added a local SQLite database in the app-data directory for runs, settings, timestamps, per-file outcomes, recovered passwords and completed-range checkpoints.
+5. Added cancellation, resume after interruption, and successful result reuse by content hash. Changed file content resets its checkpoints.
+6. Kept recovery local and left source PDFs unchanged. Dependency approval and adopted decisions are in the [question ledger](docs/notes/tauri-app-questions.md).
 
-1.  Encountered an issue where `iText7` did not correctly identify a password-protected PDF.
-2.  Switched from `iText7` to the `PDFsharp` library to address the issue.
-3.  Experimented with different versions and APIs of `PDFsharp` to find a reliable way to detect password protection.
-4.  Added extensive logging, including reflection-based inspection of `PdfSecuritySettings`, to diagnose the problem.
-5.  The application is now able to correctly identify and process password-protected files.
+## Verification and delivery
 
-## New Features & Project Evolution
+Recorded checks passed: 17 Rust unit tests, six UI logic tests, code review and a Windows x64 installer build with zero compiler warnings or errors. A review regression caught stale passwords on malformed replacement files and was fixed before delivery.
 
-1.  Created `FoundLogger.cs` to log all processed files and their results to `Found.txt`. This log includes the file path, the found password (or 'N/A'), and the time taken in minutes.
-2.  Updated `Program.cs` to use the new `FoundLogger`.
-3.  **Database Naming Convention**: Initially, the database was referred to as `progress.db` and later `Brutus.db`. A decision was made to standardize the database file name to `brutus.db` (all lowercase) across the project for consistency and clarity. This change was applied to all relevant code and documentation files (`PRD.md`, `README.md`).
-4.  **Project Scope Clarification**: The initial "educational demonstration" angle was removed from the project's description. The tool's limitation to 6-digit numeric passwords is now explicitly stated as being by design to serve the specific purpose of efficiently cracking a batch of PDF files known to have this password pattern. This reflects the practical, problem-solving origin of the tool.
-5.  **Build and Run Instructions**: Comprehensive instructions for building the project (using `dotnet build --configuration Release`) and running the compiled `Brutus.exe` directly were added to `README.md` to assist users who are not familiar with .NET development workflows.
-6.  **Multi-Instance Logging Enhancement**: Addressed an `IOException` issue that occurred when multiple `Brutus.exe` instances attempted to write to the same `log.txt` and `Found.txt` files concurrently. The solution implemented involves creating a dedicated `Logs` directory. Within this directory, each `Brutus.exe` instance now generates its own unique log files (e.g., `log_someinstanceid.txt` and `Found_someinstanceid.txt`) by incorporating a unique instance ID (GUID) into the filenames. This prevents file access collisions and ensures independent logging for each running instance.
+The implementation and delivery record were committed and pushed to `main` at `3d0944a`. [BRU-001](docs/issues/BRU-001-desktop.md) holds the evidence and remains in review. Native dialogs, rendered UI, actual persistence and restart/resume still need user-invoked integration review. Linux and macOS builds have not run.
 
-## Senior Developer Refactoring - Asynchronous Conversion
+## Documentation direction
 
-To improve efficiency and align with modern C# best practices, the entire application was refactored to be asynchronous.
-
-1.  **I/O Operations**: All synchronous file and database operations were converted to use `async/await`.
-2.  **Repositories**: The `IFileRepository` and `IBatchRepository` interfaces, along with their concrete implementations, were updated to be fully asynchronous, using Dapper's async methods.
-3.  **Service Layer**: The `async` pattern was propagated up through the `BatchCoordinator` and logging services.
-4.  **Main Entry Point**: The application's entry point in `Program.cs` was converted to an `async Task Main`, allowing the entire application to run without blocking on I/O.
-
-This change prevents thread blocking during database queries and file writes, making the application more scalable and responsive.
-
-## Gemini CLI's Contribution
-
-The Gemini CLI played a significant role in the coding and refactoring process, assisting with various implementation tasks and ensuring adherence to project requirements.
+The [README](README.md) owns desktop use, the [PRD](PRD.md) is the product overview, the [specification](docs/specs/desktop.md) owns behavior, and the [desktop guide](desktop/README.md) owns build commands. Historical material stays under `docs/archive/`.
